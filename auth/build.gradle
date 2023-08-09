@@ -8,7 +8,7 @@ plugins {
 group = 'ates.homework'
 version = '1.0.0'
 
-mainClassName = 'ates.homework.auth.ServiceStubApplication'
+mainClassName = 'ates.homework.auth.AuthApplication'
 
 java {
 	sourceCompatibility = '17'
