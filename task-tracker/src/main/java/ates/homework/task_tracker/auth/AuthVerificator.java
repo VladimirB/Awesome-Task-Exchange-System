@@ -14,7 +14,7 @@ public class AuthVerificator {
         this.userRepository = userRepository;
     }
 
-    public User obtainUser(String token) throws IllegalStateException {
+    public User verifyUserByToken(String token) throws IllegalStateException {
         var creds = token.split(":");
         if (creds.length != 2) {
             throw new IllegalStateException("Credentials is incorrect. Format: 'login:role'");

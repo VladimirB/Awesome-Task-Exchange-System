@@ -19,6 +19,8 @@ public class Task {
 
     private String description;
 
+    private TaskStatus status;
+
     @Column(name = "payout_amount")
     private int payoutAmount;
 
@@ -29,8 +31,9 @@ public class Task {
     @JoinColumn(name = "public_id")
     private User user;
 
-    public Task(String description, int payoutAmount, int penaltyAmount, User user) {
+    public Task(String description, TaskStatus status, int payoutAmount, int penaltyAmount, User user) {
         this.description = description;
+        this.status = status;
         this.payoutAmount = payoutAmount;
         this.penaltyAmount = penaltyAmount;
         this.user = user;
