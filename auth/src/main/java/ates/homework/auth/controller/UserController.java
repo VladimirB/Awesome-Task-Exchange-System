@@ -7,6 +7,7 @@ import ates.homework.auth.dto.UserDto;
 import ates.homework.auth.entity.User;
 import ates.homework.auth.entity.UserRole;
 import ates.homework.auth.service.UserService;
+import ates.homework.auth.verificator.AuthVerificator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,21 +27,22 @@ public class UserController {
 
     private final EventSender eventSender;
 
-    public UserController(UserService userService, EventSender eventSender) {
+    private final AuthVerificator authVerificator;
+
+    public UserController(UserService userService, EventSender eventSender, AuthVerificator authVerificator) {
         this.userService = userService;
         this.eventSender = eventSender;
+        this.authVerificator = authVerificator;
     }
 
     @GetMapping
     public ResponseEntity<Object> getAllUsers(@RequestHeader(X_AUTH_TOKEN_HEADER) String token) {
-//        try {
-//            if (!isUserAllowed(token)) {
-//                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-//            }
-//        } catch (IllegalStateException e) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-//                    .body(e.getMessage());
-//        }
+        try {
+            authVerificator.verifyUserByToken(token);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(e.getMessage());
+        }
 
         var users = userService.getAllUsers()
                 .stream()
@@ -48,24 +50,6 @@ public class UserController {
                 .toList();
         return ResponseEntity.status(HttpStatus.OK)
                 .body(users);
-    }
-
-    private boolean isUserAllowed(String token) throws IllegalStateException {
-        var creds = token.split(":");
-        if (creds.length != 2) {
-            throw new IllegalStateException("Credentials is incorrect. Format: 'login:role'");
-        }
-
-        var login = creds[0];
-        UserRole role;
-        try {
-            role = UserRole.valueOf(creds[1]);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalStateException("Incorrect role. Allowed: " + Arrays.toString(UserRole.values()));
-        }
-
-        var user = userService.findByLogin(login);
-        return user.isPresent() && user.get().getRole() == role;
     }
 
     @PostMapping
