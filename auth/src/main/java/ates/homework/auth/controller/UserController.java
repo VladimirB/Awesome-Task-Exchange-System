@@ -1,16 +1,21 @@
 package ates.homework.auth.controller;
 
 import ates.homework.auth.broker.MessageBroker;
+import ates.homework.auth.config.KafkaProducerConfig;
 import ates.homework.auth.dto.UserDto;
 import ates.homework.auth.entity.User;
 import ates.homework.auth.entity.UserRole;
 import ates.homework.auth.service.UserService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/users")
@@ -22,21 +27,25 @@ public class UserController {
 
     private final MessageBroker messageBroker;
 
-    public UserController(UserService userService, MessageBroker messageBroker) {
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public UserController(UserService userService, MessageBroker messageBroker, KafkaTemplate<String, String> kafkaTemplate) {
         this.userService = userService;
         this.messageBroker = messageBroker;
     }
 
     @GetMapping
     public ResponseEntity<Object> getAllUsers(@RequestHeader(X_AUTH_TOKEN_HEADER) String token) {
-        try {
-            if (!isUserAllowed(token)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(e.getMessage());
-        }
+//        try {
+//            if (!isUserAllowed(token)) {
+//                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+//            }
+//        } catch (IllegalStateException e) {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+//                    .body(e.getMessage());
+//        }
+
+        messageBroker.sendMessage("Hello World!", KafkaProducerConfig.TOPIC_USERS_STREAM);
 
         var users = userService.getAllUsers()
                 .stream()
@@ -65,7 +74,7 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<Object> createUser(@RequestBody UserDto newUser) {
+    public ResponseEntity<Object> createUser(@RequestBody UserDto newUser) throws JsonProcessingException {
         if (!StringUtils.hasText(newUser.login()) || !StringUtils.hasText(newUser.password())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Login and password should not be empty");
@@ -89,8 +98,10 @@ public class UserController {
         user.setLogin(newUser.login());
         user.setPassword(newUser.password());
         user.setRole(role);
+        user.setPublicId(UUID.randomUUID().toString());
 
         var createdUser = userService.createUser(user);
+        messageBroker.sendMessage(objectMapper.writeValueAsString(createdUser), KafkaProducerConfig.TOPIC_USERS_STREAM);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(createdUser);
