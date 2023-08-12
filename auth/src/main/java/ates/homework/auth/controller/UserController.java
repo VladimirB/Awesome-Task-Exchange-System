@@ -1,16 +1,15 @@
 package ates.homework.auth.controller;
 
-import ates.homework.auth.broker.MessageBroker;
+import ates.homework.auth.broker.Event;
+import ates.homework.auth.broker.EventSender;
 import ates.homework.auth.config.KafkaProducerConfig;
 import ates.homework.auth.dto.UserDto;
 import ates.homework.auth.entity.User;
 import ates.homework.auth.entity.UserRole;
 import ates.homework.auth.service.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,13 +24,11 @@ public class UserController {
 
     private final UserService userService;
 
-    private final MessageBroker messageBroker;
+    private final EventSender eventSender;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
-    public UserController(UserService userService, MessageBroker messageBroker, KafkaTemplate<String, String> kafkaTemplate) {
+    public UserController(UserService userService, EventSender eventSender) {
         this.userService = userService;
-        this.messageBroker = messageBroker;
+        this.eventSender = eventSender;
     }
 
     @GetMapping
@@ -44,8 +41,6 @@ public class UserController {
 //            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 //                    .body(e.getMessage());
 //        }
-
-        messageBroker.sendMessage("Hello World!", KafkaProducerConfig.TOPIC_USERS_STREAM);
 
         var users = userService.getAllUsers()
                 .stream()
@@ -101,7 +96,8 @@ public class UserController {
         user.setPublicId(UUID.randomUUID().toString());
 
         var createdUser = userService.createUser(user);
-        messageBroker.sendMessage(objectMapper.writeValueAsString(createdUser), KafkaProducerConfig.TOPIC_USERS_STREAM);
+        var message = new Event<>("UserWasCreated", 1, createdUser);
+        eventSender.sendEvent(message, KafkaProducerConfig.TOPIC_USERS_STREAM);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(createdUser);
