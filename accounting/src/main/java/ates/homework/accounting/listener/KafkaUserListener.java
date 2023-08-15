@@ -3,6 +3,7 @@ package ates.homework.accounting.listener;
 import ates.homework.accounting.entity.User;
 import ates.homework.accounting.entity.UserRole;
 import ates.homework.accounting.repository.UserRepository;
+import ates.homework.accounting.service.AccountService;
 import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.kafka.annotation.KafkaHandler;
@@ -10,13 +11,16 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 @Component
-@KafkaListener(id = "class-level", topics = "users-stream")
+@KafkaListener(id = "accounting-class-level", topics = "users-stream")
 public class KafkaUserListener {
 
     private final UserRepository userRepository;
 
-    public KafkaUserListener(UserRepository userRepository) {
+    private final AccountService accountService;
+
+    public KafkaUserListener(UserRepository userRepository, AccountService accountService) {
         this.userRepository = userRepository;
+        this.accountService = accountService;
     }
 
     @KafkaHandler
@@ -25,7 +29,8 @@ public class KafkaUserListener {
         var eventName = json.getString("name");
         if ("UserWasCreated".equals(eventName)) {
             var user = createUser(json.getJSONObject("data"));
-            userRepository.save(user);
+            var savedUser = userRepository.save(user);
+            accountService.createAccount(savedUser);
         }
     }
 

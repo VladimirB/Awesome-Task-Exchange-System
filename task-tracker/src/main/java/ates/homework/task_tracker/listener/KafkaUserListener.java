@@ -10,7 +10,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 @Component
-@KafkaListener(id = "class-level", topics = "users-stream")
+@KafkaListener(id = "task-tracker-class-level", topics = "users-stream")
 public class KafkaUserListener {
 
     private final UserRepository userRepository;
