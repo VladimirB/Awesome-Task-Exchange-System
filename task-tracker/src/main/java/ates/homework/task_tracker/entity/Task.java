@@ -17,7 +17,7 @@ public class Task {
     @JsonIgnore
     private long id;
 
-    private String description;
+    private String title;
 
     private TaskStatus status;
 
@@ -31,8 +31,8 @@ public class Task {
     @JoinColumn(name = "public_id")
     private User user;
 
-    public Task(String description, TaskStatus status, int payoutAmount, int penaltyAmount, User user) {
-        this.description = description;
+    public Task(String title, TaskStatus status, int payoutAmount, int penaltyAmount, User user) {
+        this.title = title;
         this.status = status;
         this.payoutAmount = payoutAmount;
         this.penaltyAmount = penaltyAmount;

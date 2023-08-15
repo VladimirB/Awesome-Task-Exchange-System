@@ -35,7 +35,7 @@ public class TaskService {
         var users = userRepository.findAllByRole(UserRole.POPUG);
         var index = random.nextInt(users.size());
 
-        var newTask = new Task(task.getDescription(), TaskStatus.OPEN, payout, penalty, users.get(index));
+        var newTask = new Task(task.getTitle(), TaskStatus.OPEN, payout, penalty, users.get(index));
         return taskRepository.save(newTask);
     }
 }
