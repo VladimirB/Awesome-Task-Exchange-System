@@ -15,6 +15,9 @@ public class Task {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
+    @Column(name = "public_id")
+    private String publicId;
+
     private String title;
 
     private TaskStatus status;
@@ -26,10 +29,11 @@ public class Task {
     private int penaltyAmount;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "public_id")
+    @JoinColumn(name = "user_id")
     private User user;
 
-    public Task(String title, TaskStatus status, int payoutAmount, int penaltyAmount, User user) {
+    public Task(String publicId, String title, TaskStatus status, int payoutAmount, int penaltyAmount, User user) {
+        this.publicId = publicId;
         this.title = title;
         this.status = status;
         this.payoutAmount = payoutAmount;

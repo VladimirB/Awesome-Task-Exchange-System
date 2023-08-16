@@ -5,6 +5,7 @@ import ates.homework.task_tracker.entity.Task;
 import ates.homework.task_tracker.entity.User;
 import ates.homework.task_tracker.repository.TaskRepository;
 import ates.homework.task_tracker.service.TaskService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -51,7 +52,7 @@ public class TaskController {
 
     @PutMapping("/{taskId}/complete")
     public ResponseEntity<Object> completeTask(@RequestHeader("x-auth-token") String token,
-                                               @PathVariable long taskId) {
+                                               @PathVariable long taskId) throws JsonProcessingException {
         try {
             authVerificator.verifyUserByToken(token);
         } catch (IllegalStateException e) {
