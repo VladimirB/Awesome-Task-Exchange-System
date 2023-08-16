@@ -38,4 +38,15 @@ public class TaskService {
         var newTask = new Task(task.getTitle(), TaskStatus.OPEN, payout, penalty, users.get(index));
         return taskRepository.save(newTask);
     }
+
+    public boolean completeTask(long taskId) {
+        var task = taskRepository.findById(taskId);
+        if (task.isPresent()) {
+            task.get().setStatus(TaskStatus.DONE);
+            taskRepository.save(task.get());
+            return true;
+        }
+
+        return false;
+    }
 }

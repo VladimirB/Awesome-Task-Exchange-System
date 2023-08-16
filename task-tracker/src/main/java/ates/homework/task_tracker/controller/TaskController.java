@@ -48,4 +48,20 @@ public class TaskController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(taskService.createTask(body));
     }
+
+    @PutMapping("/{taskId}/complete")
+    public ResponseEntity<Object> completeTask(@RequestHeader("x-auth-token") String token,
+                                               @PathVariable long taskId) {
+        try {
+            authVerificator.verifyUserByToken(token);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(e.getMessage());
+        }
+
+        var isCompleted = taskService.completeTask(taskId);
+
+        return isCompleted ? ResponseEntity.status(HttpStatus.OK).build()
+                : ResponseEntity.status(HttpStatus.NOT_FOUND).body("Not found task with id " + taskId);
+    }
 }
