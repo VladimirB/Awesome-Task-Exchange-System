@@ -33,7 +33,7 @@ public class AccountController {
                     .body(e.getMessage());
         }
 
-        var account = accountService.getAccountByUser(user);
+        var account = accountService.getAccountByUserPublicId(user.getPublicId());
         return account.<ResponseEntity<Object>>map(value -> ResponseEntity.status(HttpStatus.OK).body(value))
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body("Not found account for user: " + user.getLogin()));

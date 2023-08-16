@@ -2,6 +2,7 @@ package ates.homework.accounting.service;
 
 import ates.homework.accounting.entity.Account;
 import ates.homework.accounting.entity.User;
+import ates.homework.accounting.event.TaskWasCompletedEvent;
 import ates.homework.accounting.repository.AccountRepository;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +22,17 @@ public class AccountService {
         accountRepository.save(account);
     }
 
-    public Optional<Account> getAccountByUser(User user) {
-        return accountRepository.findByUserPublicId(user.getPublicId());
+    public Optional<Account> getAccountByUserPublicId(String publicId) {
+        return accountRepository.findByUserPublicId(publicId);
+    }
+
+    public void updateBalance(TaskWasCompletedEvent event) {
+        var account = getAccountByUserPublicId(event.userPublicId());
+        account.ifPresentOrElse(it -> {
+            it.setBalance(it.getBalance() + event.payout());
+            accountRepository.save(it);
+        }, () -> {
+            throw new IllegalStateException("Not found account for user: " + event.userPublicId());
+        });
     }
 }

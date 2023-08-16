@@ -1,12 +1,12 @@
 package ates.homework.task_tracker.service;
 
-import ates.homework.task_tracker.broker.EventWrapper;
 import ates.homework.task_tracker.broker.EventSender;
 import ates.homework.task_tracker.config.KafkaProducerConfig;
 import ates.homework.task_tracker.entity.Task;
 import ates.homework.task_tracker.entity.TaskStatus;
 import ates.homework.task_tracker.entity.User;
 import ates.homework.task_tracker.entity.UserRole;
+import ates.homework.task_tracker.event.EventWrapper;
 import ates.homework.task_tracker.event.TaskWasCompletedEvent;
 import ates.homework.task_tracker.repository.TaskRepository;
 import ates.homework.task_tracker.repository.UserRepository;

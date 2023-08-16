@@ -1,4 +1,4 @@
-package ates.homework.task_tracker.event;
+package ates.homework.accounting.event;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -7,8 +7,8 @@ public record TaskWasCompletedEvent(String taskPublicId,
                                     int payout,
                                     String userPublicId) implements VersionedEvent {
 
-    private static final String NAME = "TaskWasCompleted";
-    private static final int VERSION = 1;
+    public static final String NAME = "TaskWasCompleted";
+    public static final int VERSION = 1;
 
     @Override
     @JsonIgnore

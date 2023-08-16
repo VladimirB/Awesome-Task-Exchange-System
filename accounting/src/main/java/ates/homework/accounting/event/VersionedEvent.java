@@ -1,4 +1,4 @@
-package ates.homework.task_tracker.broker;
+package ates.homework.accounting.event;
 
 public interface VersionedEvent {
 
