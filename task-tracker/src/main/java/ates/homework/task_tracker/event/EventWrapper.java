@@ -1,9 +1,12 @@
 package ates.homework.task_tracker.event;
 
+import java.util.Date;
+
 public class EventWrapper<T extends VersionedEvent> {
 
     private String name;
     private int version;
+    private Date eventDate;
     private T data;
 
     public EventWrapper() {
@@ -13,6 +16,7 @@ public class EventWrapper<T extends VersionedEvent> {
     public EventWrapper(T data) {
         name = data.getName();
         version = data.getVersion();
+        eventDate = new Date();
         this.data = data;
     }
 
@@ -22,6 +26,10 @@ public class EventWrapper<T extends VersionedEvent> {
 
     public int getVersion() {
         return version;
+    }
+
+    public Date getEventDate() {
+        return eventDate;
     }
 
     public T getData() {
@@ -45,6 +53,7 @@ public class EventWrapper<T extends VersionedEvent> {
         return "EventWrapper{" +
                 "name='" + name + '\'' +
                 ", version=" + version +
+                ", eventDate=" + eventDate +
                 ", data=" + data +
                 '}';
     }

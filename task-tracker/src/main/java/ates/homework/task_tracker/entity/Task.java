@@ -20,6 +20,7 @@ public class Task {
 
     private String title;
 
+    @Enumerated(EnumType.STRING)
     private TaskStatus status;
 
     @Column(name = "payout_amount")

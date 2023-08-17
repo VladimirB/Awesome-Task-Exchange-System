@@ -1,6 +1,7 @@
 package ates.homework.accounting.listener;
 
 import ates.homework.accounting.event.EventWrapper;
+import ates.homework.accounting.event.TaskWasAssignedEvent;
 import ates.homework.accounting.event.TaskWasCompletedEvent;
 import ates.homework.accounting.repository.UserRepository;
 import ates.homework.accounting.service.AccountService;
@@ -14,17 +15,14 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 @Component
-@KafkaListener(id = "accounting-tasks-listener", topics = "task-tracker.task-lifecycle")
+@KafkaListener(id = "accounting-tasks-consumer", topics = "task-tracker.task-lifecycle")
 public class KafkaTaskListener {
-
-    private final UserRepository userRepository;
 
     private final AccountService accountService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public KafkaTaskListener(UserRepository userRepository, AccountService accountService) {
-        this.userRepository = userRepository;
+    public KafkaTaskListener(AccountService accountService) {
         this.accountService = accountService;
     }
 
@@ -34,6 +32,7 @@ public class KafkaTaskListener {
         var eventName = json.getString("name");
         switch (eventName) {
             case TaskWasCompletedEvent.NAME -> proceedTaskWasCompleted(json);
+            case TaskWasAssignedEvent.NAME -> proceedTaskWasAssigned(json);
         }
     }
 
@@ -41,7 +40,17 @@ public class KafkaTaskListener {
         switch (json.getInt("version")) {
             case TaskWasCompletedEvent.VERSION -> {
                 EventWrapper<TaskWasCompletedEvent> event = objectMapper.readValue(json.toString(), new TypeReference<>() {});
-                accountService.updateBalance(event.getData());
+                System.out.println("Event: " + event);
+                accountService.upBalance(event.getData());
+            }
+        };
+    }
+
+    private void proceedTaskWasAssigned(JSONObject json) throws JsonProcessingException, JSONException {
+        switch (json.getInt("version")) {
+            case TaskWasAssignedEvent.VERSION -> {
+                EventWrapper<TaskWasAssignedEvent> event = objectMapper.readValue(json.toString(), new TypeReference<>() {});
+                accountService.downBalance(event.getData());
             }
         };
     }

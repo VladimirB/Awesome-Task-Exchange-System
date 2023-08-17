@@ -7,6 +7,7 @@ import ates.homework.task_tracker.entity.TaskStatus;
 import ates.homework.task_tracker.entity.User;
 import ates.homework.task_tracker.entity.UserRole;
 import ates.homework.task_tracker.event.EventWrapper;
+import ates.homework.task_tracker.event.TaskWasAssignedEvent;
 import ates.homework.task_tracker.event.TaskWasCompletedEvent;
 import ates.homework.task_tracker.repository.TaskRepository;
 import ates.homework.task_tracker.repository.UserRepository;
@@ -36,7 +37,7 @@ public class TaskService {
         return taskRepository.findAllByUserPublicId(user.getPublicId());
     }
 
-    public Task createTask(Task task) {
+    public Task createTask(Task task) throws JsonProcessingException {
         Random random = new Random();
         var payout = random.nextInt(20) + 20;
         var penalty = random.nextInt(10) - 20;
@@ -50,7 +51,20 @@ public class TaskService {
                 payout,
                 penalty,
                 users.get(index));
-        return taskRepository.save(newTask);
+
+        newTask = taskRepository.save(newTask);
+
+        sendTaskAssignedEvent(newTask);
+
+        return newTask;
+    }
+
+    private void sendTaskAssignedEvent(Task task) throws JsonProcessingException {
+        var event = new TaskWasAssignedEvent(task.getPublicId(),
+                task.getTitle(),
+                task.getPenaltyAmount(),
+                task.getUser().getPublicId());
+        eventSender.sendEvent(new EventWrapper<>(event), KafkaProducerConfig.TOPIC_TASK_LIFECYCLE);
     }
 
     public boolean completeTask(long taskId) throws JsonProcessingException {

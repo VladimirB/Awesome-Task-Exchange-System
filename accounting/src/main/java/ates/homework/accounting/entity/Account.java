@@ -17,8 +17,8 @@ public class Account {
 
     private int balance;
 
-    @OneToOne
-    @JoinColumn(name = "public_id")
+    @OneToOne()
+    @JoinColumn(name = "user_public_id")
     private User user;
 
     public Account(User user) {

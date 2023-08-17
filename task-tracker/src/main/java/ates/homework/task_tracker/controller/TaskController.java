@@ -38,7 +38,7 @@ public class TaskController {
     }
 
     @PostMapping
-    public ResponseEntity<Object> createTask(@RequestBody Task body, @RequestHeader("x-auth-token") String token) {
+    public ResponseEntity<Object> createTask(@RequestBody Task body, @RequestHeader("x-auth-token") String token) throws JsonProcessingException {
         try {
             authVerificator.verifyUserByToken(token);
         } catch (IllegalStateException e) {
