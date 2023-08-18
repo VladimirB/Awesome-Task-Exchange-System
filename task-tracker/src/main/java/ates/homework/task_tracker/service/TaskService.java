@@ -14,6 +14,7 @@ import ates.homework.task_tracker.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
@@ -88,5 +89,27 @@ public class TaskService {
                 task.getPayoutAmount(),
                 task.getUser().getPublicId());
         eventSender.sendEvent(new EventWrapper<>(event), KafkaProducerConfig.TOPIC_TASK_LIFECYCLE);
+    }
+
+    public void reassignTasks(User user) throws IllegalStateException, JsonProcessingException {
+        if (user.getRole() != UserRole.ADMIN && user.getRole() != UserRole.MANAGER) {
+            throw new IllegalStateException("Only Admin or Manager can reassign tasks");
+        }
+
+        var users = userRepository.findAllByRole(UserRole.POPUG);
+        var tasks = taskRepository.findAllByStatus(TaskStatus.OPEN);
+
+        Random random = new Random();
+        List<Task> reassignedTasks = new ArrayList<>();
+        tasks.forEach(task -> {
+            var index = random.nextInt(users.size());
+            task.setUser(users.get(index));
+            reassignedTasks.add(task);
+        });
+
+        taskRepository.saveAll(reassignedTasks);
+        for (Task reassignedTask : reassignedTasks) {
+            sendTaskAssignedEvent(reassignedTask);
+        }
     }
 }

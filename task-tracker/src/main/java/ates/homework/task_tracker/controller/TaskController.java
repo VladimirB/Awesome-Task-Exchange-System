@@ -62,7 +62,25 @@ public class TaskController {
 
         var isCompleted = taskService.completeTask(taskId);
 
-        return isCompleted ? ResponseEntity.status(HttpStatus.OK).build()
+        return isCompleted ? ResponseEntity.status(HttpStatus.OK).body("Task was completed")
                 : ResponseEntity.status(HttpStatus.NOT_FOUND).body("Not found task with id " + taskId);
+    }
+
+    @PutMapping("/reassign")
+    public ResponseEntity<Object> reassignTasks(@RequestHeader("x-auth-token") String token) {
+        User user;
+        try {
+            user = authVerificator.verifyUserByToken(token);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(e.getMessage());
+        }
+
+        try {
+            taskService.reassignTasks(user);
+            return ResponseEntity.status(HttpStatus.OK).body("Tasks were reassigned");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.OK).body(e.getMessage());
+        }
     }
 }
