@@ -48,6 +48,8 @@ public class AccountService {
             transaction.setType(TransactionType.PAYOUT);
             transaction.setUser(it.getUser());
             transaction.setDate(eventDate);
+            transaction.setDescription("Зачисление средств за задачу '" + event.title() + "'");
+            transaction.setTaskPublicId(event.taskPublicId());
             transactionRepository.save(transaction);
         }, () -> {
             throw new IllegalStateException("Not found account for user: " + event.userPublicId());
@@ -66,6 +68,8 @@ public class AccountService {
             transaction.setType(TransactionType.PENALTY);
             transaction.setUser(it.getUser());
             transaction.setDate(eventDate);
+            transaction.setDescription("Списание средств за задачу '" + event.title() + "'");
+            transaction.setTaskPublicId(event.taskPublicId());
             transactionRepository.save(transaction);
         }, () -> {
             throw new IllegalStateException("Not found account for user: " + event.userPublicId());

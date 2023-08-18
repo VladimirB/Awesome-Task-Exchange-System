@@ -27,4 +27,8 @@ public class Transaction {
     @ManyToOne()
     @JoinColumn(name = "user_public_id")
     private User user;
+
+    private String description;
+
+    private String taskPublicId;
 }
