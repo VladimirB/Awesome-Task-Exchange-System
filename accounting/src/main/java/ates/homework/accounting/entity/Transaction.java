@@ -22,6 +22,7 @@ public class Transaction {
 
     private int amount;
 
+    @Temporal(TemporalType.TIMESTAMP)
     private Date date;
 
     @ManyToOne()
