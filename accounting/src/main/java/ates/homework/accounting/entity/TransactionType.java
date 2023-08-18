@@ -3,5 +3,6 @@ package ates.homework.accounting.entity;
 public enum TransactionType {
     PAYOUT,
     PENALTY,
-    SALARY
+    SALARY,
+    LOSS_FROM_PREV_DAY
 }
