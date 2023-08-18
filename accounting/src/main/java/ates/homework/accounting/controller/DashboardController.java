@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -73,5 +74,35 @@ public class DashboardController {
 
         var report = new TotalRevenueReport(revenue * -1, lossAccounts);
         return ResponseEntity.status(HttpStatus.OK).body(report);
+    }
+
+    /**
+     * Показывать самую дорогую задачу за день
+     */
+    @GetMapping("/expensive_task")
+    public ResponseEntity<Object> getTodayMostExpensiveTask(@RequestHeader("x-auth-token") String token) {
+        User user;
+        try {
+            user = authVerificator.verifyUserByToken(token);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        }
+
+        if (user.getRole() != UserRole.ADMIN) {
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("Only Admin can see the report");
+        }
+
+        var localDate = LocalDate.now();
+        LocalDateTime startOfDay = LocalDateTime.of(localDate, LocalTime.MIN);
+        LocalDateTime endOfDay = LocalDateTime.of(localDate, LocalTime.MAX);
+        var transaction = transactionRepository.findAllByType(
+                List.of(TransactionType.PAYOUT.name()),
+                startOfDay,
+                endOfDay)
+                .stream()
+                .max(Comparator.comparing(Transaction::getAmount));
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(transaction);
     }
 }
