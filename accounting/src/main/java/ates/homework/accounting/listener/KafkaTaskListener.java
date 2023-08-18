@@ -41,7 +41,7 @@ public class KafkaTaskListener {
             case TaskWasCompletedEvent.VERSION -> {
                 EventWrapper<TaskWasCompletedEvent> event = objectMapper.readValue(json.toString(), new TypeReference<>() {});
                 System.out.println("Event: " + event);
-                accountService.upBalance(event.getData());
+                accountService.upBalance(event.getData(), event.getEventDate());
             }
         };
     }
@@ -50,7 +50,7 @@ public class KafkaTaskListener {
         switch (json.getInt("version")) {
             case TaskWasAssignedEvent.VERSION -> {
                 EventWrapper<TaskWasAssignedEvent> event = objectMapper.readValue(json.toString(), new TypeReference<>() {});
-                accountService.downBalance(event.getData());
+                accountService.downBalance(event.getData(), event.getEventDate());
             }
         };
     }
