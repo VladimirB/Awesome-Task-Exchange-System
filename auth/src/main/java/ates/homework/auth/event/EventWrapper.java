@@ -1,4 +1,4 @@
-package ates.homework.task_tracker.event;
+package ates.homework.auth.event;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 

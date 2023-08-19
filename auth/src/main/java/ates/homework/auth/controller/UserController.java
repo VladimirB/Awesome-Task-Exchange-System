@@ -1,11 +1,12 @@
 package ates.homework.auth.controller;
 
-import ates.homework.auth.broker.Event;
 import ates.homework.auth.broker.EventSender;
 import ates.homework.auth.config.KafkaProducerConfig;
 import ates.homework.auth.dto.UserDto;
 import ates.homework.auth.entity.User;
 import ates.homework.auth.entity.UserRole;
+import ates.homework.auth.event.EventWrapper;
+import ates.homework.auth.event.UserWasCreatedEvent;
 import ates.homework.auth.service.UserService;
 import ates.homework.auth.verificator.AuthVerificator;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -80,8 +81,8 @@ public class UserController {
         user.setPublicId(UUID.randomUUID().toString());
 
         var createdUser = userService.createUser(user);
-        var message = new Event<>("UserWasCreated", 1, createdUser);
-        eventSender.sendEvent(message, KafkaProducerConfig.TOPIC_USERS_STREAM);
+        var event = new UserWasCreatedEvent(createdUser.getPublicId(), createdUser.getLogin(), createdUser.getRole());
+        eventSender.sendEvent(new EventWrapper<>(event), KafkaProducerConfig.TOPIC_USERS_STREAM);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(createdUser);

@@ -1,11 +1,15 @@
 package ates.homework.accounting.listener;
 
 import ates.homework.accounting.entity.User;
-import ates.homework.accounting.entity.UserRole;
+import ates.homework.accounting.event.EventWrapper;
+import ates.homework.accounting.event.UserWasCreatedEvent;
 import ates.homework.accounting.repository.UserRepository;
 import ates.homework.accounting.service.AccountService;
+import ates.homework.registry.JsonSchemaUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.configurationprocessor.json.JSONException;
-import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.kafka.annotation.KafkaHandler;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
@@ -16,27 +20,26 @@ public class KafkaUserListener {
 
     private final UserRepository userRepository;
 
-    private final AccountService accountService;
+    private final JsonSchemaUtil jsonSchemaUtil = new JsonSchemaUtil();
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public KafkaUserListener(UserRepository userRepository, AccountService accountService) {
         this.userRepository = userRepository;
-        this.accountService = accountService;
     }
 
     @KafkaHandler
-    void listener(String data) throws JSONException {
-        JSONObject json = new JSONObject(data);
-        var eventName = json.getString("name");
-        if ("UserWasCreated".equals(eventName)) {
-            var user = createUser(json.getJSONObject("data"));
-            var savedUser = userRepository.save(user);
-            accountService.createAccount(savedUser);
-        }
-    }
+    void listener(String data) throws JSONException, JsonProcessingException {
+        if (jsonSchemaUtil.isValid(data, UserWasCreatedEvent.NAME, UserWasCreatedEvent.VERSION)) {
+            EventWrapper<UserWasCreatedEvent> event = objectMapper.readValue(data, new TypeReference<>() {});
 
-    private User createUser(JSONObject json) throws JSONException {
-        return new User(json.getString("publicId"),
-                json.getString("login"),
-                UserRole.valueOf(json.getString("role")));
+            var user = new User();
+            user.setPublicId(event.getData().publicId());
+            user.setLogin(event.getData().login());
+            user.setRole(event.getData().role());
+            userRepository.save(user);
+        } else {
+            // alerts, logs, some actions etc.
+        }
     }
 }

@@ -1,12 +1,19 @@
 package ates.homework.accounting.event;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.util.Date;
+import java.util.UUID;
 
 public class EventWrapper<T extends VersionedEvent> {
 
+    private String id;
     private String name;
     private int version;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss")
     private Date eventDate;
+
     private T data;
 
     public EventWrapper() {
@@ -14,10 +21,15 @@ public class EventWrapper<T extends VersionedEvent> {
     }
 
     public EventWrapper(T data) {
+        id = UUID.randomUUID().toString();
         name = data.getName();
         version = data.getVersion();
         eventDate = new Date();
         this.data = data;
+    }
+
+    public String getId() {
+        return id;
     }
 
     public String getName() {
@@ -51,7 +63,8 @@ public class EventWrapper<T extends VersionedEvent> {
     @Override
     public String toString() {
         return "EventWrapper{" +
-                "name='" + name + '\'' +
+                "id='" + id +
+                ", name='" + name + '\'' +
                 ", version=" + version +
                 ", eventDate=" + eventDate +
                 ", data=" + data +
