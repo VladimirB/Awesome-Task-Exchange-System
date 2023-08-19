@@ -3,8 +3,8 @@ package ates.homework.accounting.listener;
 import ates.homework.accounting.event.EventWrapper;
 import ates.homework.accounting.event.TaskWasAssignedEvent;
 import ates.homework.accounting.event.TaskWasCompletedEvent;
-import ates.homework.accounting.repository.UserRepository;
 import ates.homework.accounting.service.AccountService;
+import ates.homework.registry.JsonSchemaUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,6 +20,8 @@ public class KafkaTaskListener {
 
     private final AccountService accountService;
 
+    private final JsonSchemaUtil jsonSchemaUtil = new JsonSchemaUtil();
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public KafkaTaskListener(AccountService accountService) {
@@ -31,27 +33,18 @@ public class KafkaTaskListener {
         JSONObject json = new JSONObject(data);
         var eventName = json.getString("name");
         switch (eventName) {
-            case TaskWasCompletedEvent.NAME -> proceedTaskWasCompleted(json);
-            case TaskWasAssignedEvent.NAME -> proceedTaskWasAssigned(json);
+            case TaskWasCompletedEvent.NAME -> {
+                if (jsonSchemaUtil.isValid(data, TaskWasCompletedEvent.NAME, TaskWasCompletedEvent.VERSION)) {
+                    EventWrapper<TaskWasCompletedEvent> event = objectMapper.readValue(data, new TypeReference<>() {});
+                    accountService.upBalance(event.getData(), event.getEventDate());
+                }
+            }
+            case TaskWasAssignedEvent.NAME -> {
+                if (jsonSchemaUtil.isValid(data, TaskWasAssignedEvent.NAME, TaskWasAssignedEvent.VERSION)) {
+                    EventWrapper<TaskWasAssignedEvent> event = objectMapper.readValue(json.toString(), new TypeReference<>() {});
+                    accountService.downBalance(event.getData(), event.getEventDate());
+                }
+            }
         }
-    }
-
-    private void proceedTaskWasCompleted(JSONObject json) throws JsonProcessingException, JSONException {
-        switch (json.getInt("version")) {
-            case TaskWasCompletedEvent.VERSION -> {
-                EventWrapper<TaskWasCompletedEvent> event = objectMapper.readValue(json.toString(), new TypeReference<>() {});
-                System.out.println("Event: " + event);
-                accountService.upBalance(event.getData(), event.getEventDate());
-            }
-        };
-    }
-
-    private void proceedTaskWasAssigned(JSONObject json) throws JsonProcessingException, JSONException {
-        switch (json.getInt("version")) {
-            case TaskWasAssignedEvent.VERSION -> {
-                EventWrapper<TaskWasAssignedEvent> event = objectMapper.readValue(json.toString(), new TypeReference<>() {});
-                accountService.downBalance(event.getData(), event.getEventDate());
-            }
-        };
     }
 }

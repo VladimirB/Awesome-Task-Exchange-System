@@ -7,7 +7,7 @@ public record TaskWasCompletedEvent(String taskPublicId,
                                     int payout,
                                     String userPublicId) implements VersionedEvent {
 
-    public static final String NAME = "TaskWasCompleted";
+    public static final String NAME = "task-tracker.TaskWasCompleted";
     public static final int VERSION = 1;
 
     @Override

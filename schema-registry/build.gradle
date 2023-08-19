@@ -2,7 +2,7 @@ plugins {
     id 'java'
 }
 
-group 'ates.homework'
+group 'ates.homework.registry'
 version '1.0-SNAPSHOT'
 
 repositories {
