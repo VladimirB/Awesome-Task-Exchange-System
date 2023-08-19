@@ -5,6 +5,7 @@ import ates.homework.task_tracker.entity.Task;
 import ates.homework.task_tracker.entity.User;
 import ates.homework.task_tracker.repository.TaskRepository;
 import ates.homework.task_tracker.service.TaskService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -37,7 +38,7 @@ public class TaskController {
     }
 
     @PostMapping
-    public ResponseEntity<Object> createTask(@RequestBody Task body, @RequestHeader("x-auth-token") String token) {
+    public ResponseEntity<Object> createTask(@RequestBody Task body, @RequestHeader("x-auth-token") String token) throws JsonProcessingException {
         try {
             authVerificator.verifyUserByToken(token);
         } catch (IllegalStateException e) {
@@ -47,5 +48,39 @@ public class TaskController {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(taskService.createTask(body));
+    }
+
+    @PutMapping("/{taskId}/complete")
+    public ResponseEntity<Object> completeTask(@RequestHeader("x-auth-token") String token,
+                                               @PathVariable long taskId) throws JsonProcessingException {
+        try {
+            authVerificator.verifyUserByToken(token);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(e.getMessage());
+        }
+
+        var isCompleted = taskService.completeTask(taskId);
+
+        return isCompleted ? ResponseEntity.status(HttpStatus.OK).body("Task was completed")
+                : ResponseEntity.status(HttpStatus.NOT_FOUND).body("Not found task with id " + taskId);
+    }
+
+    @PutMapping("/reassign")
+    public ResponseEntity<Object> reassignTasks(@RequestHeader("x-auth-token") String token) {
+        User user;
+        try {
+            user = authVerificator.verifyUserByToken(token);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(e.getMessage());
+        }
+
+        try {
+            taskService.reassignTasks(user);
+            return ResponseEntity.status(HttpStatus.OK).body("Tasks were reassigned");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.OK).body(e.getMessage());
+        }
     }
 }

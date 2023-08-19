@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+
+  "title": "Users.Created.v1",
+  "description": "json schema for CUD users events (version 1)",
+
+  "definitions": {
+    "event_data": {
+      "type": "object",
+      "properties": {
+        "publicId": { "type": "string" },
+        "login":    { "type": "string" },
+        "role":     { "enum": ["ADMIN", "MANAGER", "ACCOUNTANT", "POPUG"] }
+      },
+      "required": [
+        "publicId",
+        "login",
+        "role"
+      ]
+    }
+  },
+
+  "type": "object",
+  "properties": {
+    "id":        { "type": "string" },
+    "version":   { "enum": [1] },
+    "name":      { "enum": ["auth.UserWasCreated"] },
+    "eventDate": { "type": "string" },
+    "data":      { "$ref": "#/definitions/event_data" }
+  },
+  "required": [
+    "id",
+    "version",
+    "name",
+    "eventDate",
+    "data"
+  ]
+}
+

@@ -1,0 +1,4 @@
+rootProject.name = 'accounting'
+
+include ":schema-registry"
+project(":schema-registry").projectDir = file("../schema-registry")

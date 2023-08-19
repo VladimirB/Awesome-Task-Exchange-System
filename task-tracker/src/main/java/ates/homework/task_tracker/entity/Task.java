@@ -1,6 +1,5 @@
 package ates.homework.task_tracker.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,11 +13,14 @@ public class Task {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonIgnore
     private long id;
+
+    @Column(name = "public_id")
+    private String publicId;
 
     private String title;
 
+    @Enumerated(EnumType.STRING)
     private TaskStatus status;
 
     @Column(name = "payout_amount")
@@ -28,10 +30,11 @@ public class Task {
     private int penaltyAmount;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "public_id")
+    @JoinColumn(name = "user_id")
     private User user;
 
-    public Task(String title, TaskStatus status, int payoutAmount, int penaltyAmount, User user) {
+    public Task(String publicId, String title, TaskStatus status, int payoutAmount, int penaltyAmount, User user) {
+        this.publicId = publicId;
         this.title = title;
         this.status = status;
         this.payoutAmount = payoutAmount;

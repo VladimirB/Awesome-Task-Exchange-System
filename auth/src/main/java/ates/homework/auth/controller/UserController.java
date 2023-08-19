@@ -1,14 +1,17 @@
 package ates.homework.auth.controller;
 
-import ates.homework.auth.broker.Event;
 import ates.homework.auth.broker.EventSender;
 import ates.homework.auth.config.KafkaProducerConfig;
 import ates.homework.auth.dto.UserDto;
 import ates.homework.auth.entity.User;
 import ates.homework.auth.entity.UserRole;
+import ates.homework.auth.event.EventWrapper;
+import ates.homework.auth.event.UserWasCreatedEvent;
 import ates.homework.auth.service.UserService;
 import ates.homework.auth.verificator.AuthVerificator;
+import ates.homework.registry.JsonSchemaUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
@@ -28,6 +31,10 @@ public class UserController {
     private final EventSender eventSender;
 
     private final AuthVerificator authVerificator;
+
+    private final JsonSchemaUtil jsonSchemaUtil = new JsonSchemaUtil();
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public UserController(UserService userService, EventSender eventSender, AuthVerificator authVerificator) {
         this.userService = userService;
@@ -80,8 +87,15 @@ public class UserController {
         user.setPublicId(UUID.randomUUID().toString());
 
         var createdUser = userService.createUser(user);
-        var message = new Event<>("UserWasCreated", 1, createdUser);
-        eventSender.sendEvent(message, KafkaProducerConfig.TOPIC_USERS_STREAM);
+        var event = new UserWasCreatedEvent(createdUser.getPublicId(), createdUser.getLogin(), createdUser.getRole());
+        var wrapper = new EventWrapper<>(event);
+        if (jsonSchemaUtil.isValid(objectMapper.writeValueAsString(wrapper),
+                UserWasCreatedEvent.NAME,
+                UserWasCreatedEvent.VERSION)) {
+            eventSender.sendEvent(wrapper, KafkaProducerConfig.TOPIC_USERS_STREAM);
+        } else {
+            // alert or some actions to proceed UserWasCreated event later
+        }
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(createdUser);

@@ -1,2 +1,5 @@
 rootProject.name = 'task-tracker'
 
+include ":schema-registry"
+project(":schema-registry").projectDir = file("../schema-registry")
+
